@@ -202,7 +202,8 @@ function decodeCsv(bytes: ArrayBuffer) {
 export async function parseInputFile(file: File): Promise<ParseResult> {
   const bytes = await file.arrayBuffer()
   const workbook = /\.(csv|txt)$/i.test(file.name)
-    ? read(decodeCsv(bytes).replace(/^﻿/, ''), { type: 'string' })
+    // raw: a cellák szövegként maradnak, különben a „40,5” ezres tagolásként 405 lenne.
+    ? read(decodeCsv(bytes).replace(/^﻿/, ''), { type: 'string', raw: true })
     : read(bytes, { type: 'array' })
 
   for (const name of workbook.SheetNames) {
