@@ -114,8 +114,11 @@ export default function App() {
       const link = document.createElement('a')
       link.href = url
       link.download = `${customer.trim().replace(/[\\/:*?"<>|]+/g, '_')}.xlsx`
+      document.body.append(link)
       link.click()
-      URL.revokeObjectURL(url)
+      link.remove()
+      // Azonnali visszavonásnál a böngésző megszakíthatja a letöltést.
+      setTimeout(() => URL.revokeObjectURL(url), 60_000)
       setNotice('A Zsalu rendelő Excel letöltve.')
     } catch (caught) {
       setNotice(caught instanceof Error ? caught.message : 'Az átalakítás nem sikerült.')
