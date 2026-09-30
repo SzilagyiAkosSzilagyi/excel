@@ -1,4 +1,6 @@
 import { useEffect, useRef, useState, type ChangeEvent } from 'react'
+import type { Session } from '@supabase/supabase-js'
+import { AuthPage } from './components/AuthPage'
 import { supabase } from './lib/supabase'
 
 function UploadIcon() {
@@ -30,19 +32,44 @@ export default function App() {
   const inputRef = useRef<HTMLInputElement>(null)
   const [file, setFile] = useState<File | null>(null)
   const [notice, setNotice] = useState('')
-  const [connection, setConnection] = useState<'checking' | 'connected' | 'error'>('checking')
+  const [session, setSession] = useState<Session | null>(null)
+  const [authReady, setAuthReady] = useState(false)
 
   useEffect(() => {
     let active = true
 
-    supabase.auth.getSession().then(({ error }) => {
-      if (active) setConnection(error ? 'error' : 'connected')
+    supabase.auth.getSession().then(({ data }) => {
+      if (!active) return
+      setSession(data.session)
+      setAuthReady(true)
+    })
+
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, nextSession) => {
+      if (active) {
+        setSession(nextSession)
+        setAuthReady(true)
+      }
     })
 
     return () => {
       active = false
+      listener.subscription.unsubscribe()
     }
   }, [])
+
+  if (!authReady) {
+    return (
+      <div className="app-loading" role="status">
+        <span className="brand-mark">E</span>
+        <strong>EXO</strong>
+        <i></i>
+      </div>
+    )
+  }
+
+  if (!session) return <AuthPage />
+
+  const userInitials = session.user.email?.slice(0, 2).toUpperCase() ?? 'EX'
 
   function handleFile(event: ChangeEvent<HTMLInputElement>) {
     const selected = event.target.files?.item(0) ?? null
@@ -64,16 +91,19 @@ export default function App() {
 
         <nav className="topnav" aria-label="Fő navigáció">
           <a href="#workflow">Hogyan működik?</a>
-          <span className={`connection-pill ${connection}`}>
+          <span className="connection-pill connected">
             <i aria-hidden="true"></i>
-            {connection === 'connected'
-              ? 'Supabase kapcsolódva'
-              : connection === 'error'
-                ? 'Kapcsolati hiba'
-                : 'Kapcsolódás'}
+            Supabase kapcsolódva
           </span>
-          <button className="profile-button" type="button" aria-label="Felhasználói profil">
-            <span>ÁK</span>
+          <span className="user-email">{session.user.email}</span>
+          <button
+            className="profile-button"
+            type="button"
+            aria-label="Kijelentkezés"
+            title="Kijelentkezés"
+            onClick={() => supabase.auth.signOut()}
+          >
+            <span>{userInitials}</span>
           </button>
         </nav>
       </header>

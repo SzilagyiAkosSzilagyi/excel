@@ -62,6 +62,15 @@ VITE_SUPABASE_PUBLISHABLE_KEY=...
 
 Frontendbe kizárólag publishable kulcs kerülhet. Secret vagy service-role kulcsot tilos `VITE_` előtagú változóban tárolni.
 
+### Hitelesítés
+
+- Regisztráció e-mail-címmel és legalább 8 karakteres jelszóval.
+- Bejelentkezés e-mail-címmel és jelszóval.
+- A két jelszó egyezésének és a minimális hosszúságnak a kliensoldali ellenőrzése.
+- Supabase e-mail-megerősítés támogatása; megerősítés nélkül nem jön létre aktív munkamenet.
+- A böngészőben tárolt munkamenet automatikus visszaállítása és kijelentkezés.
+- A konvertáló felület csak bejelentkezett felhasználónak jelenik meg.
+
 ## Első célformátum: Zsalu Kft.
 
 A `munka` munkalap ismert oszlopai:
