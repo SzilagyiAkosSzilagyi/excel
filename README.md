@@ -45,7 +45,9 @@ EXO/
 
 ## Jelenlegi állapot
 
-Az induló React + TypeScript projektváz elkészült. A felület már fogad egy fájlt, de tényleges konvertálást még nem végez. A parser és a konverter implementálásához szükség van legalább egy valós forrásfájlra és egy elvárt kimeneti mintára.
+Az első reszponzív frontend elkészült. A kezdőképernyőn két műveleti kártya található: Excel-fájl feltöltése és az átalakított fájl letöltése. A felület már fogad XLSX, XLS és CSV fájlt, megjeleníti a kiválasztott fájl állapotát, és előkészíti a letöltési lépést.
+
+A tényleges konvertálás és letöltés még demonstrációs állapotú. A következő fejlesztési szakasz a Supabase-alapú bejelentkezés, adattárolás és backend bekötése, valamint a parser és a konverter implementálása valós mintaállományok alapján.
 
 ## Első célformátum: Zsalu Kft.
 
@@ -54,4 +56,3 @@ A `munka` munkalap ismert oszlopai:
 `# | Szálirány | Kereszti. | Élzárás | Szál. 1 | Szál. 2 | Ker. 1 | Ker. 2 | Forg. | Munka azonosító | Bútor | Elem | Megjegyzés`
 
 A részletes, még tisztázandó mezőket a [docs/formatumok.md](docs/formatumok.md) fájl tartalmazza.
-
