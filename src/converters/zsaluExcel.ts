@@ -5,7 +5,7 @@ import type { ZsaluPart } from '../types/conversion'
 // így a formázás, a legördülő listák, a súgó munkalap és a rejtett oszlopok
 // változatlanok maradnak. Csak az alkatrészsorok (3. sortól) íródnak be.
 const TEMPLATE_URL = '/sablonok/zsalu-rendelo.xlsx'
-const SHEET_PATH = 'xl/worksheets/sheet1.xml'
+const SHEET_PATH = '/xl/worksheets/sheet1.xml'
 const FIRST_ROW = 3
 const LAST_ROW = 400
 
@@ -134,21 +134,21 @@ export async function buildZsaluWorkbook(customer: string, parts: ZsaluPart[]) {
   writeText(cfb, SHEET_PATH, sheet.slice(0, dataStart) + sheetData + sheet.slice(dataEnd))
 
   // A képletlánc a régi cellákra hivatkozik; Excel megnyitáskor újraépíti.
-  CFB.utils.cfb_del(cfb, 'xl/calcChain.xml')
+  CFB.utils.cfb_del(cfb, '/xl/calcChain.xml')
   writeText(
     cfb,
-    '[Content_Types].xml',
-    readText(cfb, '[Content_Types].xml').replace(/<Override PartName="\/xl\/calcChain\.xml"[^>]*\/>/, ''),
+    '/[Content_Types].xml',
+    readText(cfb, '/[Content_Types].xml').replace(/<Override PartName="\/xl\/calcChain\.xml"[^>]*\/>/, ''),
   )
   writeText(
     cfb,
-    'xl/_rels/workbook.xml.rels',
-    readText(cfb, 'xl/_rels/workbook.xml.rels').replace(/<Relationship [^>]*Target="calcChain\.xml"[^>]*\/>/, ''),
+    '/xl/_rels/workbook.xml.rels',
+    readText(cfb, '/xl/_rels/workbook.xml.rels').replace(/<Relationship [^>]*Target="calcChain\.xml"[^>]*\/>/, ''),
   )
   writeText(
     cfb,
-    'xl/workbook.xml',
-    readText(cfb, 'xl/workbook.xml').replace(/<calcPr ([^>]*?)\/>/, (tag, attrs: string) =>
+    '/xl/workbook.xml',
+    readText(cfb, '/xl/workbook.xml').replace(/<calcPr ([^>]*?)\/>/, (tag, attrs: string) =>
       attrs.includes('fullCalcOnLoad') ? tag : `<calcPr ${attrs} fullCalcOnLoad="1"/>`,
     ),
   )
