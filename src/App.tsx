@@ -1,4 +1,5 @@
-import { useRef, useState, type ChangeEvent } from 'react'
+import { useEffect, useRef, useState, type ChangeEvent } from 'react'
+import { supabase } from './lib/supabase'
 
 function UploadIcon() {
   return (
@@ -29,6 +30,19 @@ export default function App() {
   const inputRef = useRef<HTMLInputElement>(null)
   const [file, setFile] = useState<File | null>(null)
   const [notice, setNotice] = useState('')
+  const [connection, setConnection] = useState<'checking' | 'connected' | 'error'>('checking')
+
+  useEffect(() => {
+    let active = true
+
+    supabase.auth.getSession().then(({ error }) => {
+      if (active) setConnection(error ? 'error' : 'connected')
+    })
+
+    return () => {
+      active = false
+    }
+  }, [])
 
   function handleFile(event: ChangeEvent<HTMLInputElement>) {
     const selected = event.target.files?.item(0) ?? null
@@ -50,6 +64,14 @@ export default function App() {
 
         <nav className="topnav" aria-label="Fő navigáció">
           <a href="#workflow">Hogyan működik?</a>
+          <span className={`connection-pill ${connection}`}>
+            <i aria-hidden="true"></i>
+            {connection === 'connected'
+              ? 'Supabase kapcsolódva'
+              : connection === 'error'
+                ? 'Kapcsolati hiba'
+                : 'Kapcsolódás'}
+          </span>
           <button className="profile-button" type="button" aria-label="Felhasználói profil">
             <span>ÁK</span>
           </button>

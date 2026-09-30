@@ -49,6 +49,19 @@ Az első reszponzív frontend elkészült. A kezdőképernyőn két műveleti k�
 
 A tényleges konvertálás és letöltés még demonstrációs állapotú. A következő fejlesztési szakasz a Supabase-alapú bejelentkezés, adattárolás és backend bekötése, valamint a parser és a konverter implementálása valós mintaállományok alapján.
 
+## Supabase
+
+A frontend az `EXCEL PROJECT` Supabase projekthez csatlakozik a `@supabase/supabase-js` klienssel. A helyi beállítások a Git által figyelmen kívül hagyott `.env.local` fájlban vannak.
+
+Új fejlesztői környezetben másold le a `.env.example` fájlt `.env.local` néven, majd add meg:
+
+```text
+VITE_SUPABASE_URL=...
+VITE_SUPABASE_PUBLISHABLE_KEY=...
+```
+
+Frontendbe kizárólag publishable kulcs kerülhet. Secret vagy service-role kulcsot tilos `VITE_` előtagú változóban tárolni.
+
 ## Első célformátum: Zsalu Kft.
 
 A `munka` munkalap ismert oszlopai:

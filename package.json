@@ -10,11 +10,12 @@
     "test": "vitest run --passWithNoTests"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.117.2",
     "@vitejs/plugin-react": "latest",
-    "vite": "latest",
-    "typescript": "latest",
     "react": "latest",
     "react-dom": "latest",
+    "typescript": "latest",
+    "vite": "latest",
     "xlsx": "latest"
   },
   "devDependencies": {
