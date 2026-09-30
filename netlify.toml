@@ -1,0 +1,9 @@
+[build]
+  command = "pnpm run build"
+  publish = "dist"
+
+# Egyoldalas alkalmazás: minden útvonal az index.html-t kapja.
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200

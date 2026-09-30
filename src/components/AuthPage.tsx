@@ -33,6 +33,20 @@ function translateAuthError(message: string) {
   return 'A művelet nem sikerült. Ellenőrizd az adatokat, majd próbáld újra.'
 }
 
+// A megerősítő link hibája (pl. lejárt link) a Supabase-től az URL-ben érkezik.
+function readAuthLinkError() {
+  const params = new URLSearchParams(window.location.hash.slice(1) || window.location.search)
+  const code = params.get('error_code') ?? params.get('error')
+  if (!code) return ''
+
+  window.history.replaceState(null, '', window.location.pathname)
+
+  if (code === 'otp_expired') {
+    return 'A megerősítő link lejárt vagy már felhasználták. Lépj be, vagy regisztrálj újra egy új linkért.'
+  }
+  return 'Az e-mail-cím megerősítése nem sikerült. Kérjük, próbáld újra.'
+}
+
 export function AuthPage() {
   const [mode, setMode] = useState<AuthMode>('signin')
   const [email, setEmail] = useState('')
@@ -40,7 +54,7 @@ export function AuthPage() {
   const [passwordAgain, setPasswordAgain] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
+  const [error, setError] = useState(readAuthLinkError)
   const [success, setSuccess] = useState('')
 
   function changeMode(nextMode: AuthMode) {
