@@ -189,8 +189,21 @@ function parseSheet(rows: unknown[][]): ParseResult | null {
   return { parts, issues }
 }
 
+// CSV-nél a kódolást magunk döntjük el: UTF-8, ha érvényes, különben a magyar
+// Excel alapértelmezett Windows-1250 kódolása.
+function decodeCsv(bytes: ArrayBuffer) {
+  try {
+    return new TextDecoder('utf-8', { fatal: true }).decode(bytes)
+  } catch {
+    return new TextDecoder('windows-1250').decode(bytes)
+  }
+}
+
 export async function parseInputFile(file: File): Promise<ParseResult> {
-  const workbook = read(await file.arrayBuffer(), { type: 'array' })
+  const bytes = await file.arrayBuffer()
+  const workbook = /\.(csv|txt)$/i.test(file.name)
+    ? read(decodeCsv(bytes).replace(/^﻿/, ''), { type: 'string' })
+    : read(bytes, { type: 'array' })
 
   for (const name of workbook.SheetNames) {
     const rows = utils.sheet_to_json<unknown[]>(workbook.Sheets[name], { header: 1, raw: true, defval: '' })
