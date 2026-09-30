@@ -1,33 +1,42 @@
-export interface SourceDocument {
-  fileName: string
-  sheets: SourceSheet[]
-}
+// A Zsalu Kft. rendelő sablonjának élzárás-legördülő listája (A9279:A9289).
+export const EDGE_OPTIONS = [
+  'ABS 2mm',
+  'Más ABS 2mm',
+  'ABS 0,8mm',
+  'Más ABS 0,8mm',
+  'ABS 0,4mm',
+  'Más0,4mm',
+  'Élfurnér',
+  'Más Élfurnér',
+  'Élléc',
+  'Más Élléc',
+  'Falc',
+] as const
 
-export interface SourceSheet {
-  name: string
-  rows: unknown[][]
-}
+export type EdgeOption = (typeof EDGE_OPTIONS)[number]
 
-export interface CuttingItem {
-  sequence: number
-  grainLength: number
-  crossLength: number
-  edgeBanding: string
-  edgeLength1: number
-  edgeLength2: number
-  edgeCross1: number
-  edgeCross2: number
-  rotatable: boolean
-  jobId: string
-  cabinet: string
-  part: string
-  note: string
+// Egy sor a Zsalu Kft. rendelő programjában (3. sortól lefelé).
+export interface ZsaluPart {
+  material: string // B – Anyag
+  label: string // C – Jelölés
+  quantity: number // D – Darab
+  length: number // E – Hossz "A", szálirányú bruttó méret (mm)
+  width: number // F – Szél "B" bruttó méret (mm)
+  rotatable: boolean // G – Forg? (Igen / Nem)
+  edgeFront: EdgeOption | '' // I – Élz. elöl "A"
+  edgeBack: EdgeOption | '' // L – Élz. hátul "A"
+  edgeLeft: EdgeOption | '' // O – Élz. bal "B"
+  edgeRight: EdgeOption | '' // R – Élz. jobb "B"
+  sourceRow: number
 }
 
 export interface ValidationIssue {
   level: 'hiba' | 'figyelmeztetés'
   message: string
   row?: number
-  column?: string
 }
 
+export interface ParseResult {
+  parts: ZsaluPart[]
+  issues: ValidationIssue[]
+}

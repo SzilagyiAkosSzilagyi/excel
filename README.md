@@ -73,8 +73,6 @@ Frontendbe kizárólag publishable kulcs kerülhet. Secret vagy service-role kul
 
 ## Első célformátum: Zsalu Kft.
 
-A `munka` munkalap ismert oszlopai:
+A kimenet mindig a Zsalu Kft. eredeti rendelő sablonja (`public/sablonok/zsalu-rendelo.xlsx`): a program a sablont tölti ki, a formázás, a legördülő listák, a rejtett oszlopok és a „Segítség” munkalap változatlan marad.
 
-`# | Szálirány | Kereszti. | Élzárás | Szál. 1 | Szál. 2 | Ker. 1 | Ker. 2 | Forg. | Munka azonosító | Bútor | Elem | Megjegyzés`
-
-A részletes, még tisztázandó mezőket a [docs/formatumok.md](docs/formatumok.md) fájl tartalmazza.
+Az oszlopok és a szabályok leírását a [docs/formatumok.md](docs/formatumok.md) fájl tartalmazza.

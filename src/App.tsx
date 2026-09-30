@@ -2,6 +2,9 @@ import { useEffect, useRef, useState, type ChangeEvent } from 'react'
 import type { Session } from '@supabase/supabase-js'
 import { AuthPage } from './components/AuthPage'
 import { supabase } from './lib/supabase'
+import { parseInputFile } from './parsers/tableParser'
+import { buildZsaluWorkbook } from './converters/zsaluExcel'
+import type { ParseResult } from './types/conversion'
 
 function UploadIcon() {
   return (
@@ -34,6 +37,9 @@ export default function App() {
   const [notice, setNotice] = useState('')
   const [session, setSession] = useState<Session | null>(null)
   const [authReady, setAuthReady] = useState(false)
+  const [result, setResult] = useState<ParseResult | null>(null)
+  const [customer, setCustomer] = useState('')
+  const [busy, setBusy] = useState(false)
 
   useEffect(() => {
     let active = true
@@ -71,14 +77,51 @@ export default function App() {
 
   const userInitials = session.user.email?.slice(0, 2).toUpperCase() ?? 'EX'
 
-  function handleFile(event: ChangeEvent<HTMLInputElement>) {
+  const errors = result?.issues.filter((issue) => issue.level === 'hiba') ?? []
+  const warnings = result?.issues.filter((issue) => issue.level === 'figyelmeztetés') ?? []
+  const canDownload = !!result && result.parts.length > 0 && errors.length === 0 && customer.trim() !== '' && !busy
+
+  async function handleFile(event: ChangeEvent<HTMLInputElement>) {
     const selected = event.target.files?.item(0) ?? null
+    event.target.value = ''
     setFile(selected)
-    setNotice(selected ? 'A fájl sikeresen feltöltve. Az átalakításra kész.' : '')
+    setResult(null)
+    setNotice('')
+    if (!selected) return
+
+    setCustomer((current) => current || selected.name.replace(/\.[^.]+$/, ''))
+    setBusy(true)
+    try {
+      const parsed = await parseInputFile(selected)
+      setResult(parsed)
+      const hasErrors = parsed.issues.some((issue) => issue.level === 'hiba')
+      setNotice(hasErrors
+        ? 'A fájl hibákat tartalmaz, javítsd őket a letöltés előtt.'
+        : `${parsed.parts.length} alkatrész beolvasva, átalakításra kész.`)
+    } catch {
+      setResult({ parts: [], issues: [{ level: 'hiba', message: 'A fájl nem olvasható. XLSX, XLS vagy CSV fájlt tölts fel.' }] })
+    } finally {
+      setBusy(false)
+    }
   }
 
-  function handleDownload() {
-    setNotice('A letöltés a Supabase backend csatlakoztatása után válik elérhetővé.')
+  async function handleDownload() {
+    if (!result || !canDownload) return
+    setBusy(true)
+    try {
+      const blob = await buildZsaluWorkbook(customer.trim(), result.parts)
+      const url = URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      link.download = `${customer.trim().replace(/[\\/:*?"<>|]+/g, '_')}.xlsx`
+      link.click()
+      URL.revokeObjectURL(url)
+      setNotice('A Zsalu rendelő Excel letöltve.')
+    } catch (caught) {
+      setNotice(caught instanceof Error ? caught.message : 'Az átalakítás nem sikerült.')
+    } finally {
+      setBusy(false)
+    }
   }
 
   return (
@@ -166,10 +209,21 @@ export default function App() {
             <div className="icon-frame"><DownloadIcon /></div>
             <div className="card-copy">
               <h2>Átalakított tábla letöltése</h2>
-              <p>A rendezett adatok a megadott célformátumban, letöltésre készen jelennek meg.</p>
+              <p>Az adatok a Zsalu Kft. rendelő sablonjába kerülnek, pontosan annak formátumában.</p>
             </div>
 
-            <button className="action-button" type="button" disabled={!file} onClick={handleDownload}>
+            <label className="order-field">
+              <span>Megrendelő neve</span>
+              <input
+                type="text"
+                value={customer}
+                placeholder="pl. XY Kft 1"
+                onChange={(event) => setCustomer(event.target.value)}
+              />
+              <small>Minden új rendelésnél legyen egyedi (pl. XY Kft 1, XY Kft 2).</small>
+            </label>
+
+            <button className="action-button" type="button" disabled={!canDownload} onClick={handleDownload}>
               Excel letöltése
               <span aria-hidden="true">↓</span>
             </button>
@@ -182,11 +236,23 @@ export default function App() {
             <span className="status-label">Aktuális munkafájl</span>
             <strong>{file ? file.name : 'Még nincs feltöltött fájl'}</strong>
           </div>
-          <div className={`status-dot${file ? ' active' : ''}`}>
+          <div className={`status-dot${result && errors.length === 0 ? ' active' : ''}`}>
             <span></span>
-            {file ? 'Feldolgozásra kész' : 'Feltöltésre vár'}
+            {!file ? 'Feltöltésre vár' : busy ? 'Feldolgozás…' : errors.length ? `${errors.length} hiba` : `${result?.parts.length ?? 0} alkatrész`}
           </div>
         </section>
+
+        {result && result.issues.length > 0 && (
+          <section className="issue-list" aria-label="Ellenőrzés eredménye">
+            {[...errors, ...warnings].slice(0, 50).map((issue, index) => (
+              <p key={index} className={issue.level === 'hiba' ? 'is-error' : 'is-warning'}>
+                <b>{issue.level === 'hiba' ? 'Hiba' : 'Figyelem'}{issue.row ? ` · ${issue.row}. sor` : ''}</b>
+                {issue.message}
+              </p>
+            ))}
+            {result.issues.length > 50 && <p>…és további {result.issues.length - 50} tétel.</p>}
+          </section>
+        )}
 
         {notice && (
           <div className="notice" role="status">
